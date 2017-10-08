@@ -40,7 +40,7 @@ export default {
 
 .anim-enter-active,
 .anim-leave-active {
-  transition: opacity .5s ease;
+  transition: opacity .4s ease;
 }
 
 .anim-enter,
