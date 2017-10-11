@@ -1,8 +1,12 @@
 <template>
-    <div class="singer">
-        <list-view :data="singers">
-
-        </list-view>
+    <div>
+        <div class="singer" v-show="singers.length">
+            <list-view :data="singers">
+            </list-view>
+        </div>
+        <div class="loading-container" v-show="!singers.length">
+            <loading></loading>
+        </div>
     </div>
 </template>
 
@@ -11,6 +15,7 @@ import { getSingerList } from 'api/singer'
 import { ERR_OK } from 'api/config'
 import Singer from 'common/js/singer'
 import ListView from 'base/listview/listview'
+import Loading from 'base/loading/loading'
 
 const HOT_NAME = '热门'
 const HOT_SINGER_LEN = 10
@@ -25,7 +30,8 @@ export default {
         this._getSingerList()
     },
     components: {
-        ListView
+        ListView,
+        Loading
     },
     methods: {
         _getSingerList() {
@@ -95,5 +101,12 @@ export default {
     top: 88px;
     bottom: 0;
     width: 100%;
+}
+
+.loading-container {
+    position: absolute;
+    width: 100%;
+    top: 50%;
+    transform: translateY(-50%);
 }
 </style>

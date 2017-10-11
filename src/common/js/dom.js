@@ -16,3 +16,14 @@ export function hasClass(el, className) {
     let reg = new RegExp('(^|\\s)' + className + '(\\s|$)')
     return reg.test(el.className)
 }
+
+// 设置或者获取一个el上的data-xx 属性，传入参数为： el dom对象，name 属性名，val 属性值
+export function getData(el, name, val) {
+    const prefix = 'data-'
+    name = prefix + name
+    if (val) {
+        return el.setAttribute(name, val)
+    } else {
+        return el.getAttribute(name)
+    }
+}

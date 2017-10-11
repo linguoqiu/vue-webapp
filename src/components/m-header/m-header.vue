@@ -1,7 +1,7 @@
 <template>
     <div class="m-header">
         <div class="icon"></div>
-        <h1 class="text">Enjoy Music</h1>
+        <h1 class="text">Like Music</h1>
     </div>
 </template>
 
