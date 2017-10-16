@@ -66,6 +66,7 @@ export default {
                         items: []
                     }
                 }
+                // 推歌手到map[key]
                 map[key].items.push(new Singer({
                     id: item.Fsinger_mid,
                     name: item.Fsinger_name
