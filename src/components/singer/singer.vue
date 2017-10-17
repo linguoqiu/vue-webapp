@@ -77,6 +77,7 @@ export default {
             let ret = []
             for (let key in map) {
                 let val = map[key]
+                // 匹配a-z，A-Z其中一个字母
                 if (val.title.match(/[a-zA-Z]/)) {
                     ret.push(val)
                 } else if (val.title === HOT_NAME) {
