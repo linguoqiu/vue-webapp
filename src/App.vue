@@ -2,8 +2,11 @@
   <div id="app">
     <m-header></m-header>
     <tab></tab>
+    <!-- 跳转动画 -->
     <transition name="anim" mode="out-in">
+      <!-- 缓存页面，来换跳转的时候不用重新渲染 -->
       <keep-alive>
+        <!-- 子页面在此标签下渲染 -->
         <router-view></router-view>
       </keep-alive>
     </transition>

@@ -5,8 +5,10 @@ import Search from 'components/search/search'
 import Rank from 'components/rank/rank'
 import Singer from 'components/singer/singer'
 
+// 使用Router组件
 Vue.use(Router)
 
+// 配置路由
 export default new Router({
   routes: [
     {
