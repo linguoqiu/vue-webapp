@@ -1,5 +1,5 @@
 <template>
-    <scroll class="listview" :data='data' ref="listview">
+    <scroll class="listview" :data='data' ref="listview" :listenScroll='listenScroll' :probeType='probeType' @scroll="scroll">
         <ul>
             <li v-for="group in data" class="list-group" ref="listGroup">
                 <h2 class="list-group-title">{{group.title}}</h2>
@@ -13,7 +13,7 @@
         </ul>
         <div class="list-shortcut" @touchstart='onShortcutTouchStart' @touchmove.stop.prevent="onShortcutTouchMove">
             <ul>
-                <li v-for="(item, index) in shortcutList" class="item" :data-index="index">
+                <li v-for="(item, index) in shortcutList" class="item" :class="{'current': currentIndex === index}" :data-index="index">
                     {{item}}
                 </li>
             </ul>
@@ -31,6 +31,15 @@ const ANCHOR_HEIGHT = 18
 export default {
     created() {
         this.touch = {}
+        this.listenScroll = true
+        this.listHeight = []
+        this.probeType = 3
+    },
+    data() {
+        return {
+            scrollY: -1,
+            currentIndex: 0
+        }
     },
     props: {
         data: {
@@ -64,12 +73,60 @@ export default {
             this.touch.y2 = firstTouch.pageY
             // | 0 为向下取整
             let delta = (this.touch.y2 - this.touch.y1) / ANCHOR_HEIGHT | 0
-            // 计算move到哪个字母上
-            let anchorIndex = this.touch.anchorIndex + delta
+            // 计算move到哪个字母上,this.touch.anchorIndex要转换为数字
+            let anchorIndex = parseInt(this.touch.anchorIndex) + delta
             this._scrollTo(anchorIndex)
         },
+        // scroll事件触发的函数
+        scroll(pos) {
+            this.scrollY = pos.y
+        },
         _scrollTo(index) {
+            // 第二个参数为滚动的时间，0为不需要动画
             this.$refs.listview.scrollToElement(this.$refs.listGroup[index], 0)
+        },
+        // 计算高度
+        _calculateHeight() {
+            this.listHeight = []
+            // 获取listGroup
+            const list = this.$refs.listGroup
+            let height = 0
+            // listHeight是存放每个item的高度（height）
+            this.listHeight.push(height)
+            for (let i = 0; i < list.length; i++) {
+                let item = list[i]
+                // item是dom对象，直接获取clientHeight
+                height += item.clientHeight
+                this.listHeight.push(height)
+            }
+        }
+    },
+    watch: {
+        data() {
+            setTimeout(() => {
+                this._calculateHeight()
+            }, 20)
+        },
+        // scrollY发生变化了就执行此方法，第一个参数为新值，第二个参数为旧值
+        scrollY(newY) {
+            const listHeight = this.listHeight
+            // 当滚动到顶部时，newY> 0
+            if (newY > 0) {
+                this.currentIndex = 0
+                return
+            }
+            // 当在中间滚动的时候
+            // 判断newY落在listHeight数组的哪个区间内，如在此区间内，直接返回
+            for (let i = 0; i < listHeight.length - 1; i++) {
+                let height1 = listHeight[i]
+                let height2 = listHeight[i + 1]
+                if (!height2 || (-newY >= height1 && -newY < height2)) {
+                    this.currentIndex = i
+                    return
+                }
+            }
+            // 当滚动到底部的时候，且-newY大于最后一个元素的上限
+            this.currentIndex = listHeight.length - 2
         }
     }
 }

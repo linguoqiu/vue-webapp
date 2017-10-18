@@ -6,6 +6,7 @@
 
 
 <script type='text/ecmascript-6'>
+// 使用到了better-scroll插件
 import BScroll from 'better-scroll'
 export default {
     props: {
@@ -20,6 +21,11 @@ export default {
         data: {
             type: Array,
             default: null
+        },
+        // 是否监听滚动
+        listenScroll: {
+            type: Boolean,
+            default: false
         }
     },
     mounted() {
@@ -37,7 +43,18 @@ export default {
                 probeType: this.probeType,
                 click: this.click
             })
+
+            if (this.listenScroll) {
+                // 保留此vue实例
+                let me = this
+                // 监听scroll事件，pos为位置
+                this.scroll.on('scroll', (pos) => {
+                    // 触发当前实例上的事件。附加参数都会传给监听器回调。
+                    me.$emit('scroll', pos)
+                })
+            }
         },
+        // enable，disable，refresh，scrollTo，scrollToElement 分别调用better-scroll上的方法
         enable() {
             this.scroll && this.scroll.enable()
         },
