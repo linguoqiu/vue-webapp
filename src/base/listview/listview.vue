@@ -1,4 +1,5 @@
 <template>
+    <!-- ref是对组件的引用，在js中使用this.$refs.listview使用 -->
     <scroll class="listview" :data='data' ref="listview" :listenScroll='listenScroll' :probeType='probeType' @scroll="scroll">
         <ul>
             <li v-for="group in data" class="list-group" ref="listGroup">
@@ -11,6 +12,7 @@
                 </ul>
             </li>
         </ul>
+        <!-- 右侧的简称，监听触摸开始事件和触摸移动事件，与list联动 -->
         <div class="list-shortcut" @touchstart='onShortcutTouchStart' @touchmove.stop.prevent="onShortcutTouchMove">
             <ul>
                 <li v-for="(item, index) in shortcutList" class="item" :class="{'current': currentIndex === index}" :data-index="index">

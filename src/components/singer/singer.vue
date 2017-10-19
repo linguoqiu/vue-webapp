@@ -34,6 +34,7 @@ export default {
         Loading
     },
     methods: {
+        // 请求歌手数据
         _getSingerList() {
             getSingerList().then((res) => {
                 if (res.code === ERR_OK) {
@@ -43,6 +44,7 @@ export default {
                 }
             })
         },
+        // 初始化歌手列表
         _normalizeSinger(list) {
             let map = {
                 hot: {
