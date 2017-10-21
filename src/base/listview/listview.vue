@@ -40,7 +40,7 @@ export default {
     created() {
         this.touch = {}
         this.listenScroll = true
-        this.listHeight = []
+        this.listHeight = []  // 存list的每个item的高度
         this.probeType = 3
     },
     data() {
@@ -169,7 +169,6 @@ export default {
             }
             this.fixedTop = fixedTop
             this.$refs.fixed.style.transform = `translate3d(0,${fixedTop}px,0)`
-            console.log(this.fixedTop)
         }
     }
 }
