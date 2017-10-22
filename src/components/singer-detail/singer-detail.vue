@@ -6,8 +6,18 @@
 </template>
 
 <script type="text/ecmascript-6">
-export default {
+import { mapGetters } from 'vuex'
 
+export default {
+    computed: {
+         // 映射 `this.singer` 为 `store.getters.singer`
+        ...mapGetters([
+            'singer'
+        ])
+    },
+    created() {
+        console.log(this.singer)
+    }
 }
 </script>
 
@@ -24,12 +34,14 @@ export default {
   background: $color-background;
 }
 
-.slide-enter-active,.slide-leave-active{
-    transition: all 0.3s;
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 0.3s;
 }
 
-.slider-enter,.slide-leave-to{
-    transform: translate3d(100%,0,0);
+.slider-enter,
+.slide-leave-to {
+  transform: translate3d(100%, 0, 0);
 }
 </style>
 

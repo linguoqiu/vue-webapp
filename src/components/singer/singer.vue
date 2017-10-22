@@ -18,6 +18,7 @@ import { ERR_OK } from 'api/config'
 import Singer from 'common/js/singer'
 import ListView from 'base/listview/listview'
 import Loading from 'base/loading/loading'
+import { mapMutations } from 'vuex'
 
 const HOT_NAME = '热门'
 const HOT_SINGER_LEN = 10
@@ -41,6 +42,8 @@ export default {
             this.$router.push({
                 path: `/singer/${singer.id}`
             })
+            // 相当于 commit mutation 'singer'
+            this.setSinger(singer)
         },
         // 请求歌手数据
         _getSingerList() {
@@ -100,7 +103,10 @@ export default {
             })
             // concat()方法用于连接两个或多个数组。
             return hot.concat(ret)
-        }
+        },
+        ...mapMutations({
+            setSinger: 'SET_SINGER'
+        })
     }
 }
 </script>

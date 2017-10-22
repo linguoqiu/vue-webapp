@@ -7,6 +7,7 @@ import mutations from './mutations'
 // vuex的logger插件
 import createLogger from 'vuex/dist/logger'
 
+// 全局引入Vuex
 Vue.use(Vuex)
 
 // 如果是开发环境下才开启debug
