@@ -7,16 +7,32 @@
 
 <script type="text/ecmascript-6">
 import { mapGetters } from 'vuex'
+import { getSingerDetail } from 'api/singer'
+import { ERR_OK } from 'api/config'
 
 export default {
     computed: {
-         // 映射 `this.singer` 为 `store.getters.singer`
+        // 映射 `this.singer` 为 `store.getters.singer`
         ...mapGetters([
             'singer'
         ])
     },
     created() {
-        console.log(this.singer)
+        this._getDetail()
+    },
+    methods: {
+        _getDetail() {
+            // 如果singer.id为空，则返回上一页，防止在歌手页面刷新导致异常
+            if (!this.singer.id) {
+                this.$router.push('/singer')
+                return
+            }
+            getSingerDetail(this.singer.id).then((res) => {
+                if (res.code === ERR_OK) {
+                    console.log(res)
+                }
+            })
+        }
     }
 }
 </script>
