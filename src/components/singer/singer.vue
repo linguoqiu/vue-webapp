@@ -1,12 +1,14 @@
 <template>
     <div>
         <div class="singer" v-show="singers.length">
-            <list-view :data="singers">
+            <list-view :data="singers" @select='selectSinger'>
             </list-view>
         </div>
         <div class="loading-container" v-show="!singers.length">
             <loading></loading>
         </div>
+        <!-- 二级路由 -->
+        <router-view></router-view>
     </div>
 </template>
 
@@ -34,6 +36,12 @@ export default {
         Loading
     },
     methods: {
+        // 由listview组件发来的select事件的响应方法
+        selectSinger(singer) {
+            this.$router.push({
+                path: `/singer/${singer.id}`
+            })
+        },
         // 请求歌手数据
         _getSingerList() {
             getSingerList().then((res) => {
@@ -98,19 +106,19 @@ export default {
 </script>
 
 <style scoped lang="scss">
-@import '../../common/stylus/variable.scss';
+@import "../../common/stylus/variable.scss";
 
 .singer {
-    position: fixed;
-    top: 88px;
-    bottom: 0;
-    width: 100%;
+  position: fixed;
+  top: 88px;
+  bottom: 0;
+  width: 100%;
 }
 
 .loading-container {
-    position: absolute;
-    width: 100%;
-    top: 50%;
-    transform: translateY(-50%);
+  position: absolute;
+  width: 100%;
+  top: 50%;
+  transform: translateY(-50%);
 }
 </style>
