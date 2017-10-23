@@ -9,8 +9,14 @@
 import { mapGetters } from 'vuex'
 import { getSingerDetail } from 'api/singer'
 import { ERR_OK } from 'api/config'
+import { createSong } from 'common/js/song'
 
 export default {
+    data() {
+        return {
+            songs: []
+        }
+    },
     computed: {
         // 映射 `this.singer` 为 `store.getters.singer`
         ...mapGetters([
@@ -27,11 +33,25 @@ export default {
                 this.$router.push('/singer')
                 return
             }
+            // 获取歌手详细歌曲清单
             getSingerDetail(this.singer.id).then((res) => {
                 if (res.code === ERR_OK) {
-                    console.log(res)
+                    this.songs = this._normalizeSongs(res.data.list)
+                    console.log(this.songs)
                 }
             })
+        },
+        // 初始化song数据
+        _normalizeSongs(list) {
+            let ret = []
+            list.forEach((item) => {
+                // 对象的解构赋值：将 item下的 musicData 赋值给 musicData变量
+                let { musicData } = item
+                if (musicData.songid && musicData.albummid) {
+                    ret.push(createSong(musicData))
+                }
+            })
+            return ret
         }
     }
 }
