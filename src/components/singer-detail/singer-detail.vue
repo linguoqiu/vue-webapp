@@ -1,7 +1,8 @@
 <template>
     <!-- 跳转到子页面的动画 -->
     <transition name="slide">
-        <div class="singer-detail"></div>
+        <!-- 渲染 music-list -->
+       <music-list :title="title" :bg-image="bgImage" :songs="songs"></music-list>
     </transition>
 </template>
 
@@ -10,6 +11,7 @@ import { mapGetters } from 'vuex'
 import { getSingerDetail } from 'api/singer'
 import { ERR_OK } from 'api/config'
 import { createSong } from 'common/js/song'
+import MusicList from 'components/music-list/music-list'
 
 export default {
     data() {
@@ -18,6 +20,12 @@ export default {
         }
     },
     computed: {
+        title() {
+            return this.singer.name
+        },
+        bgImage() {
+            return this.singer.avatar
+        },
         // 映射 `this.singer` 为 `store.getters.singer`
         ...mapGetters([
             'singer'
@@ -25,6 +33,9 @@ export default {
     },
     created() {
         this._getDetail()
+    },
+    components: {
+        MusicList
     },
     methods: {
         _getDetail() {
@@ -60,23 +71,11 @@ export default {
 <style lang="scss" scoped>
 @import "../../common/stylus/variable.scss";
 
-.singer-detail {
-  position: fixed;
-  z-index: 100;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: $color-background;
-}
-
-.slide-enter-active,
-.slide-leave-active {
+.slide-enter-active,.slide-leave-active {
   transition: all 0.3s;
 }
 
-.slider-enter,
-.slide-leave-to {
+.slider-enter,.slide-leave-to {
   transform: translate3d(100%, 0, 0);
 }
 </style>
