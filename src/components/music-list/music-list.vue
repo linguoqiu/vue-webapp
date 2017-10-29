@@ -1,19 +1,28 @@
 <template>
   <div class="music-list">
-      <div class="back">
+      <div class="back" @click="back">
           <i class="icon-back"></i>
       </div>
       <h1 class="title" v-html="title"></h1>
       <div class="bg-image" :style="bgStyle" ref="bgImage">
+          <div class="play-wrapper">
+              <div class="play" v-show="songs.length > 0" ref="playBtn">
+                  <i class="icon-play"></i>
+                  <span class="text">随机播放全部</span>
+              </div>
+          </div>
           <div class="filter" ref="filter"></div>
       </div>
-      <!-- 背景层，用于滚动 -->
+      <!-- 背景层，用于向上滚动时遮挡背景图，达到随着移动的效果 -->
       <div class="bg-layer" ref="layer"></div>
       <!-- 滚动组件 -->
       <scroll @scroll="scroll" :probe-type="probeType" :listen-scroll="listenScroll" :data="songs" class="list" ref="list">
           <div class="song-list-wrapper">
               <!-- 歌单组件 -->
              <song-list :songs="songs"></song-list>
+          </div>
+          <div class="loading-container" v-show="!songs.length">
+              <loading></loading>
           </div>
       </scroll>
   </div>
@@ -22,8 +31,12 @@
 <script type="text/ecmascript-6">
 import Scroll from 'base/scroll/scroll'
 import SongList from 'base/song-list/song-list'
+import { prefixStyle } from 'common/js/dom'
+import Loading from 'base/loading/loading'
 
 const RESERVED_HEIGHT = 40
+const transform = prefixStyle('transform')
+const backdrop = prefixStyle('backdrop-filter')
 
 export default {
     data() {
@@ -56,7 +69,8 @@ export default {
     },
     components: {
         Scroll,
-        SongList
+        SongList,
+        Loading
     },
     mounted() {
         // 缓存图片的高度
@@ -67,6 +81,7 @@ export default {
         this.$refs.list.$el.style.top = `${this.imageHeight}px`
     },
     watch: {
+        // 监听scrollY的变化，然后样式随着变化
         scrollY(newY) {
             let translateY = Math.max(this.minTranslateY, newY)
             let zIndex = 0
@@ -75,8 +90,7 @@ export default {
             // 下拉歌单的时候，图片无缝对接放大的比列
             const percent = Math.abs(newY / this.imageHeight)
             // 为layer添加transform样式
-            this.$refs.layer.style['transform'] = `translate3d(0,${translateY}px,0)`
-            this.$refs.layer.style['webkitTransform'] = `translate3d(0,${translateY}px,0)`
+            this.$refs.layer.style[transform] = `translate3d(0,${translateY}px,0)`
             if (newY > 0) {
                 scale = 1 + percent
                 zIndex = 10
@@ -84,27 +98,31 @@ export default {
                 blur = Math.min(20 * percent, 20)
             }
             // backdrop-filter 高斯模糊的属性，只有在ios上能看到效果
-            this.$refs.filter.style['backdrop-filter'] = `blur(${blur}px)`
-            this.$refs.filter.style['webkitBackdrop-filter'] = `blur(${blur}px)`
+            this.$refs.filter.style[backdrop] = `blur(${blur}px)`
             // 处理上划的时候，歌曲在背景图上面没隐藏的情况
             if (newY < this.minTranslateY) {
+                // 更改bgImage的样式
                 zIndex = 10
                 this.$refs.bgImage.style.paddingTop = 0
                 this.$refs.bgImage.style.height = `${RESERVED_HEIGHT}px`
+                this.$refs.playBtn.style.display = 'none'
             } else {
                 this.$refs.bgImage.style.paddingTop = '70%'
                 this.$refs.bgImage.style.height = 0
+                this.$refs.playBtn.style.display = ''
             }
             this.$refs.bgImage.style.zIndex = zIndex
             // 为bgImage添加transform 放大样式
-            this.$refs.bgImage.style['transform'] = `scale(${scale})`
-            this.$refs.bgImage.style['webkitTransform'] = `scale(${scale})`
+            this.$refs.bgImage.style[transform] = `scale(${scale})`
         }
     },
     methods: {
         //  scroll组件发出来的scroll事件的相应方法
         scroll(pos) {
             this.scrollY = pos.y
+        },
+        back() {
+            this.$router.back()
         }
     }
 }

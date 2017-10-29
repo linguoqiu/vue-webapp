@@ -27,3 +27,39 @@ export function getData(el, name, val) {
         return el.getAttribute(name)
     }
 }
+
+// 创建一个div元素，并获取到它的style
+let elementStyle = document.createElement('div').style
+
+// 进行浏览器能力检测，并返回检测结果
+let vendor = (() => {
+    let transformNames = {
+        webkit: 'webkitTransform',
+        Moz: 'MozTransform',
+        O: 'OTransform',
+        ms: 'msTransform',
+        standard: 'transform'
+    }
+
+    // 检查是哪种供应商
+    for (let key in transformNames) {
+        if (elementStyle[transformNames[key]] !== undefined) {
+        return key
+    }
+
+    return false
+}
+})()
+
+export function prefixStyle(style) {
+    // 如果vendor 为false。证明浏览器是有问题的
+    if (vendor === false) {
+        return false
+    }
+    // vendor === 'standard'，返回原来的样式名
+    if (vendor === 'standard') {
+        return style
+    }
+    // 返回前缀加style首字母大写
+    return vendor + style.charAt(0).toUpperCase() + style.substr(1)
+}
