@@ -10,18 +10,22 @@
         <router-view></router-view>
       </keep-alive>
     </transition>
+    <!-- 播放页面，不存在路由之中 -->
+    <player></player>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
 import MHeader from './components/m-header/m-header'
 import Tab from 'components/tab/tab'
+import Player from 'components/player/player'
 
 export default {
   name: 'app',
   components: {
     MHeader,
-    Tab
+    Tab,
+    Player
   }
 }
 </script>

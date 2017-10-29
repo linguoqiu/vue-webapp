@@ -19,7 +19,7 @@
       <scroll @scroll="scroll" :probe-type="probeType" :listen-scroll="listenScroll" :data="songs" class="list" ref="list">
           <div class="song-list-wrapper">
               <!-- 歌单组件 -->
-             <song-list :songs="songs"></song-list>
+             <song-list @select="selectItem" :songs="songs"></song-list>
           </div>
           <div class="loading-container" v-show="!songs.length">
               <loading></loading>
@@ -33,6 +33,7 @@ import Scroll from 'base/scroll/scroll'
 import SongList from 'base/song-list/song-list'
 import { prefixStyle } from 'common/js/dom'
 import Loading from 'base/loading/loading'
+import {mapActions} from 'vuex'
 
 const RESERVED_HEIGHT = 40
 const transform = prefixStyle('transform')
@@ -123,7 +124,18 @@ export default {
         },
         back() {
             this.$router.back()
-        }
+        },
+        selectItem(item, index) {
+            // 选择歌曲后，弹出播放页面
+            this.selectPlay({
+                list: this.songs, // 传送这个歌单列表
+                index
+            })
+        },
+        // vuex的Actions方法
+        ...mapActions([
+            'selectPlay'
+        ])
     }
 }
 </script>
