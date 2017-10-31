@@ -19,7 +19,7 @@
             <div class="middle">
                 <div class="middle-l">
                     <div class="cd-wrapper" ref="cdWrapper">
-                        <div class="cd">
+                        <div class="cd" :class="cdCls">
                             <img class="image" :src="currentSong.image">
                         </div>
                     </div>
@@ -31,14 +31,14 @@
                     <div class="icon i-left">
                         <i class="icon-sequence"></i>
                     </div>
-                    <div class="icon i-left">
-                        <i class="icon-prev"></i>
+                    <div class="icon i-left" :class="disableCls">
+                        <i @click="prev" class="icon-prev"></i>
                     </div>
-                    <div class="icon i-center">
-                        <i class="icon-play"></i>
+                    <div class="icon i-center" :class="disableCls">
+                        <i @click="togglePlaying" :class="playIcon"></i>
                     </div>
-                    <div class="icon i-right">
-                        <i class="icon-next"></i>
+                    <div class="icon i-right" :class="disableCls">
+                        <i @click="next" class="icon-next"></i>
                     </div>
                     <div class="icon i-right">
                         <i class="icon icon-not-favorite"></i>
@@ -51,18 +51,24 @@
        <transition name="mini">
             <div class="mini-player" v-show="!fullScreen" @click='open'>
                 <div class="icon">
-                    <img width="40" height="40" :src="currentSong.image">
+                    <!-- cdCls控制旋转和暂停旋转 -->
+                    <img :class="cdCls" width="40" height="40" :src="currentSong.image">
                 </div>
                 <div class="text">
                     <h2 class="name" v-html="currentSong.name"></h2>
                     <p class="desc" v-html="currentSong.singer"></p>
                 </div>
-                <div class="control"></div>
+                <div class="control">
+                    <!-- 要阻止冒泡 -->
+                    <i @click.stop="togglePlaying" :class="miniIcon"></i>
+                </div>
                 <div class="control">
                     <i class="icon-playlist"></i>
                 </div>
             </div>
        </transition>
+       <!-- audio提供了ready 和erro事件 -->
+       <audio ref="audio" :src="currentSong.url" @canplay="ready" @error="error"></audio>
   </div>
 </template>
 
@@ -74,12 +80,31 @@ import { prefixStyle } from 'common/js/dom'
 const transform = prefixStyle('transform')
 
 export default {
+    data() {
+        return {
+            songReady: false // 歌曲是否准备好
+        }
+    },
     computed: {
+        cdCls() {
+            return this.playing ? 'play' : 'play pause'
+        },
+        playIcon() {
+            return this.playing ? 'icon-pause' : 'icon-play'
+        },
+        miniIcon() {
+            return this.playing ? 'icon-pause-mini' : 'icon-play-mini'
+        },
+        disableCls() {
+            return this.songReady ? '' : 'disable'
+        },
         // 获取vuex的状态
         ...mapGetters([
             'fullScreen',
             'playList',
-            'currentSong'
+            'currentSong',
+            'playing',
+            'currentIndex'
         ])
     },
     methods: {
@@ -131,9 +156,53 @@ export default {
             this.$refs.cdWrapper.addEventListener('transitionend', done)
         },
         afterLeave() {
-             // 清空transition
+            // 清空transition
             this.$refs.cdWrapper.style.transition = ''
-             this.$refs.cdWrapper.style[transform] = ''
+            this.$refs.cdWrapper.style[transform] = ''
+        },
+        togglePlaying() {
+            // 控制暂停和开始
+            this.setPlayingState(!this.playing)
+        },
+        // 下一首歌
+        next() {
+            if (!this.songReady) {
+                return
+            }
+            let index = this.currentIndex + 1
+            // 最后一首的时候，返回到第一首
+            if (index === this.playList.length) {
+                index = 0
+            }
+            this.setCurrentIndex(index)
+            // 下一首的时候如果不是非播放状态，则改变状态
+            if (!this.playing) {
+                this.togglePlaying()
+            }
+            this.songReady = false
+        },
+        // 上一首歌
+        prev() {
+            if (!this.songReady) {
+                return
+            }
+            let index = this.currentIndex - 1
+            // 最后一首的时候，返回到第一首
+            if (index === -1) {
+                index = this.playList.length - 1
+            }
+            this.setCurrentIndex(index)
+            if (!this.playing) {
+                this.togglePlaying()
+            }
+            this.songReady = false
+        },
+        ready() {
+            this.songReady = true
+        },
+        // 当歌曲加载失败的时候，做处理
+        error() {
+            this.songReady = true
         },
         _getPosAndScale() {
             const targetWidth = 40 // 小图宽度
@@ -151,8 +220,27 @@ export default {
             }
         },
         ...mapMutations({
-            setFullScreen: 'SET_FULL_SCREEN'
+            setFullScreen: 'SET_FULL_SCREEN',
+            setPlayingState: 'SET_PLAYING_STATE',
+            setCurrentIndex: 'SET_CURRENT_INDEX'
         })
+    },
+    watch: {
+        // 监听歌曲的变化
+        currentSong() {
+            // 将回调延迟到下次 DOM 更新循环之后执行。在修改数据之后立即使用它，然后等待 DOM 更新
+            // 如果不调用的话会出现dom错误
+            this.$nextTick(() => {
+                this.$refs.audio.play()
+            })
+        },
+        // 监听播放状态的变化,控制audio的播放和暂停
+        playing(newPlaying) {
+            const audio = this.$refs.audio
+            this.$nextTick(() => {
+                newPlaying ? audio.play() : audio.pause()
+            })
+        }
     }
 }
 </script>
