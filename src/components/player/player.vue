@@ -86,6 +86,7 @@ export default {
         }
     },
     computed: {
+        // 监听playing的变化，不同的类和icon都做出变化
         cdCls() {
             return this.playing ? 'play' : 'play pause'
         },
@@ -150,6 +151,7 @@ export default {
         },
         leave(el, done) {
             this.$refs.cdWrapper.style.transition = `all 0.4s`
+            // es6 语法
             const { x, y, scale } = this._getPosAndScale()
             this.$refs.cdWrapper.style[transform] = `translate3d(${x}px,${y}px,0) scale(${scale})`
             // 监听transitionend事件，完成后执行done
@@ -219,6 +221,7 @@ export default {
                 scale
             }
         },
+        // 映射到vuex的mutations上
         ...mapMutations({
             setFullScreen: 'SET_FULL_SCREEN',
             setPlayingState: 'SET_PLAYING_STATE',
@@ -327,7 +330,7 @@ export default {
             border: 10px solid rgba(255, 255, 255, 0.1);
             border-radius: 50%;
             &.play {
-              animation: rotate 20s linear infinite;
+              animation: rotate 20s linear infinite; // 不停的旋转
             }
             &.pause {
               animation-play-state: paused;
