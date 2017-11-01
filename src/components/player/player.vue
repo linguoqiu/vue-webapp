@@ -27,6 +27,13 @@
             </div>
             <!-- 底部的操作区 -->
             <div class="bottom">
+                <div class="progress-wrapper">
+                    <span class="time time-l">{{format(currentTime)}}</span>
+                    <div class="progress-bar-wrapper">
+                        <progress-bar :percent="percent"></progress-bar>
+                    </div>
+                    <span class="time time-r">{{format(currentSong.duration)}}</span>
+                </div>
                 <div class="operators">
                     <div class="icon i-left">
                         <i class="icon-sequence"></i>
@@ -67,8 +74,8 @@
                 </div>
             </div>
        </transition>
-       <!-- audio提供了ready 和erro事件 -->
-       <audio ref="audio" :src="currentSong.url" @canplay="ready" @error="error"></audio>
+       <!-- audio提供了ready、timeupdate 和erro事件 -->
+       <audio ref="audio" :src="currentSong.url" @canplay="ready" @error="error" @timeupdate="updateTime"></audio>
   </div>
 </template>
 
@@ -76,13 +83,15 @@
 import { mapGetters, mapMutations } from 'vuex'
 import animations from 'create-keyframe-animation'
 import { prefixStyle } from 'common/js/dom'
+import ProgressBar from 'base/progress-bar/progress-bar'
 
 const transform = prefixStyle('transform')
 
 export default {
     data() {
         return {
-            songReady: false // 歌曲是否准备好
+            songReady: false, // 歌曲是否准备好
+            currentTime: 0
         }
     },
     computed: {
@@ -99,6 +108,10 @@ export default {
         disableCls() {
             return this.songReady ? '' : 'disable'
         },
+        // 计算当前进度的百分比
+        percent() {
+            return this.currentTime / this.currentSong.duration
+        },
         // 获取vuex的状态
         ...mapGetters([
             'fullScreen',
@@ -107,6 +120,9 @@ export default {
             'playing',
             'currentIndex'
         ])
+    },
+    components: {
+        ProgressBar
     },
     methods: {
         // 关闭大播放器界面
@@ -205,6 +221,28 @@ export default {
         // 当歌曲加载失败的时候，做处理
         error() {
             this.songReady = true
+        },
+        // audio播放时的timeupdate事件相应方法
+        updateTime(e) {
+            this.currentTime = e.target.currentTime
+        },
+        // 格式化时间格式
+        format(interval) {
+            // 向下取整
+            interval = interval | 0
+            const minute = interval / 60 | 0
+            const second = this._pan(interval % 60)
+            return `${minute}:${second}`
+        },
+        // 补0操作
+        _pan(num, n = 2) {
+            // 获取num的长度
+            let len = num.toString().length
+            while (len < n) {
+                num = '0' + num
+                len++
+            }
+            return num
         },
         _getPosAndScale() {
             const targetWidth = 40 // 小图宽度
