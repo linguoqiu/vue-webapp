@@ -75,7 +75,7 @@ export default {
   transition: all 0.3s;
 }
 
-.slider-enter,.slide-leave-to {
+.slide-enter,.slide-leave-to {
   transform: translate3d(100%, 0, 0);
 }
 </style>
