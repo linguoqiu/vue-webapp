@@ -30,7 +30,7 @@
                 <div class="progress-wrapper">
                     <span class="time time-l">{{format(currentTime)}}</span>
                     <div class="progress-bar-wrapper">
-                        <progress-bar :percent="percent"></progress-bar>
+                        <progress-bar :percent="percent" @percentChange="onProgressBarChange"></progress-bar>
                     </div>
                     <span class="time time-r">{{format(currentSong.duration)}}</span>
                 </div>
@@ -233,6 +233,13 @@ export default {
             const minute = interval / 60 | 0
             const second = this._pan(interval % 60)
             return `${minute}:${second}`
+        },
+        onProgressBarChange(percent) {
+            this.$refs.audio.currentTime = this.currentSong.duration * percent
+            // 如果没播放的，选择播放
+            if (!this.playing) {
+                this.togglePlaying()
+            }
         },
         // 补0操作
         _pan(num, n = 2) {
