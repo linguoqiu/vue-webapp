@@ -35,8 +35,8 @@
                     <span class="time time-r">{{format(currentSong.duration)}}</span>
                 </div>
                 <div class="operators">
-                    <div class="icon i-left">
-                        <i class="icon-sequence"></i>
+                    <div class="icon i-left" @click="changeMode">
+                        <i :class="iconMode"></i>
                     </div>
                     <div class="icon i-left" :class="disableCls">
                         <i @click="prev" class="icon-prev"></i>
@@ -66,7 +66,7 @@
                     <p class="desc" v-html="currentSong.singer"></p>
                 </div>
                 <div class="control">
-                    <progress-circle>
+                    <progress-circle :radius="radius" :percent="percent">
                         <!-- 要阻止冒泡 -->
                         <i @click.stop="togglePlaying" class="icon-mini" :class="miniIcon"></i>
                     </progress-circle>
@@ -87,6 +87,7 @@ import animations from 'create-keyframe-animation'
 import { prefixStyle } from 'common/js/dom'
 import ProgressBar from 'base/progress-bar/progress-bar'
 import ProgressCircle from 'base/progress-circle/progress-circle'
+import { playMode } from 'common/js/config'
 
 const transform = prefixStyle('transform')
 
@@ -94,7 +95,8 @@ export default {
     data() {
         return {
             songReady: false, // 歌曲是否准备好
-            currentTime: 0
+            currentTime: 0,
+            radius: 32
         }
     },
     computed: {
@@ -115,13 +117,17 @@ export default {
         percent() {
             return this.currentTime / this.currentSong.duration
         },
+        iconMode() {
+            return this.mode === playMode.sequence ? 'icon-sequence' : this.mode === playMode.loop ? 'icon-loop' : 'icon-random'
+        },
         // 获取vuex的状态
         ...mapGetters([
             'fullScreen',
             'playList',
             'currentSong',
             'playing',
-            'currentIndex'
+            'currentIndex',
+            'mode'
         ])
     },
     components: {
@@ -245,6 +251,10 @@ export default {
                 this.togglePlaying()
             }
         },
+        changeMode() {
+            const mode = (this.mode + 1) % 3
+            this.setPlayMode(mode)
+        },
         // 补0操作
         _pan(num, n = 2) {
             // 获取num的长度
@@ -274,7 +284,8 @@ export default {
         ...mapMutations({
             setFullScreen: 'SET_FULL_SCREEN',
             setPlayingState: 'SET_PLAYING_STATE',
-            setCurrentIndex: 'SET_CURRENT_INDEX'
+            setCurrentIndex: 'SET_CURRENT_INDEX',
+            setPlayMode: 'SET_PLAY_MODE'
         })
     },
     watch: {
