@@ -77,7 +77,8 @@
             </div>
        </transition>
        <!-- audio提供了ready、timeupdate 和erro事件 -->
-       <audio ref="audio" :src="currentSong.url" @canplay="ready" @error="error" @timeupdate="updateTime"></audio>
+       <audio ref="audio" :src="currentSong.url" @canplay="ready" @error="error" @timeupdate="updateTime"
+       @ended="end"></audio>
   </div>
 </template>
 
@@ -88,6 +89,7 @@ import { prefixStyle } from 'common/js/dom'
 import ProgressBar from 'base/progress-bar/progress-bar'
 import ProgressCircle from 'base/progress-circle/progress-circle'
 import { playMode } from 'common/js/config'
+import { shuffle } from 'common/js/util'
 
 const transform = prefixStyle('transform')
 
@@ -127,7 +129,8 @@ export default {
             'currentSong',
             'playing',
             'currentIndex',
-            'mode'
+            'mode',
+            'sequenceList'
         ])
     },
     components: {
@@ -192,6 +195,19 @@ export default {
             // 控制暂停和开始
             this.setPlayingState(!this.playing)
         },
+        // audio的结束事件响应方法
+        end() {
+            if (this.mode === playMode.loop) {
+                this.loop()
+            } else {
+                this.next()
+            }
+        },
+        // 单曲循环结束时的处理方法
+        loop() {
+            this.$refs.audio.currentTime = 0
+            this.$refs.audio.play()
+        },
         // 下一首歌
         next() {
             if (!this.songReady) {
@@ -241,7 +257,7 @@ export default {
             // 向下取整
             interval = interval | 0
             const minute = interval / 60 | 0
-            const second = this._pan(interval % 60)
+            const second = this._pad(interval % 60)
             return `${minute}:${second}`
         },
         onProgressBarChange(percent) {
@@ -251,12 +267,31 @@ export default {
                 this.togglePlaying()
             }
         },
+        //  改变播放模式
         changeMode() {
             const mode = (this.mode + 1) % 3
             this.setPlayMode(mode)
+            let list = null
+            if (mode === playMode.random) {
+                // 打乱sequenceList的顺序
+                list = shuffle(this.sequenceList)
+            } else {
+                list = this.sequenceList
+            }
+            // 索引和列表同时改变
+            this.resetCurrentIndex(list)
+            this.setPlaylist(list)
+        },
+        // 设置当前索引
+        resetCurrentIndex(list) {
+            let index = list.findIndex((item) => {
+                // 如果item.id等于当前歌曲的id。则返回这个item的index
+                return item.id === this.currentSong.id
+            })
+            this.setCurrentIndex(index)
         },
         // 补0操作
-        _pan(num, n = 2) {
+        _pad(num, n = 2) {
             // 获取num的长度
             let len = num.toString().length
             while (len < n) {
@@ -285,12 +320,17 @@ export default {
             setFullScreen: 'SET_FULL_SCREEN',
             setPlayingState: 'SET_PLAYING_STATE',
             setCurrentIndex: 'SET_CURRENT_INDEX',
-            setPlayMode: 'SET_PLAY_MODE'
+            setPlayMode: 'SET_PLAY_MODE',
+            setPlaylist: 'SET_PLAYLIST'
         })
     },
     watch: {
         // 监听歌曲的变化
-        currentSong() {
+        currentSong(newSong, oldSong) {
+            // 当song改变时，前后id相同的话，不作变化
+            if (newSong.id === oldSong.id) {
+                return
+            }
             // 将回调延迟到下次 DOM 更新循环之后执行。在修改数据之后立即使用它，然后等待 DOM 更新
             // 如果不调用的话会出现dom错误
             this.$nextTick(() => {

@@ -64,7 +64,11 @@ export default {
             this._triggerPercent()
         },
         progressClick(e) {
-            this._offset(e.offsetX)
+            const rect = this.$refs.progressBar.getBoundingClientRect()
+            const offsetWidth = e.pageX - rect.left
+            this._offset(offsetWidth)
+            // 这里当我们点击progressbtn的时候，e.offsetX获取不对
+            // this._offset(e.offsetX)
             this._triggerPercent()
         },
         // 设置偏移量
