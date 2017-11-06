@@ -42,6 +42,33 @@ apiRoutes.get('/getDiscList', function (req, res) {
   })
 })
 
+// 代理getLyric请求
+apiRoutes.get('/lyric', function (req, res) {
+    var url = 'https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg'
+  
+    axios.get(url, {
+      headers: {
+        referer: 'https://c.y.qq.com',
+        host: 'c.y.qq.com'
+      },
+      params: req.query
+    }).then((response) => {
+      var ret = response.data
+    //   判断是否返回的是 jsonp
+      if (typeof ret === 'string') {
+        //   匹配jsonpcallback的中间部分
+          var reg = /^\w+\(({[^()]+})\)$/
+          var matches = ret.match(reg)
+          if (matches) {
+              ret = JSON.parse(matches[1])
+          }
+      }
+      res.json(ret)
+    }).catch((e) => {
+      console.log(e)
+    })
+  })
+
 app.use('/api',apiRoutes)
 
 var compiler = webpack(webpackConfig)

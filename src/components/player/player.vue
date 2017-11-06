@@ -90,6 +90,7 @@ import ProgressBar from 'base/progress-bar/progress-bar'
 import ProgressCircle from 'base/progress-circle/progress-circle'
 import { playMode } from 'common/js/config'
 import { shuffle } from 'common/js/util'
+import Lyric from 'lyric-parser'
 
 const transform = prefixStyle('transform')
 
@@ -98,7 +99,8 @@ export default {
         return {
             songReady: false, // 歌曲是否准备好
             currentTime: 0,
-            radius: 32
+            radius: 32,
+            currentLyric: null
         }
     },
     computed: {
@@ -290,6 +292,14 @@ export default {
             })
             this.setCurrentIndex(index)
         },
+        getLyric() {
+            // 获取歌词
+            this.currentSong.getLyric().then((lyric) => {
+                // 解析歌词
+                this.currentLyric = new Lyric(lyric)
+                console.log(this.currentLyric)
+            })
+        },
         // 补0操作
         _pad(num, n = 2) {
             // 获取num的长度
@@ -335,6 +345,7 @@ export default {
             // 如果不调用的话会出现dom错误
             this.$nextTick(() => {
                 this.$refs.audio.play()
+                this.getLyric()
             })
         },
         // 监听播放状态的变化,控制audio的播放和暂停
@@ -376,7 +387,7 @@ export default {
       margin-bottom: 25px;
       .back {
         position: absolute;
-        top: 0;
+        top: 3px;
         left: 6px;
         z-index: 50;
         .icon-back {

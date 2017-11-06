@@ -1,3 +1,13 @@
+import {
+    getLyric
+} from 'api/song'
+import {
+    ERR_OK
+} from 'api/config'
+import {
+    Base64
+} from 'js-base64'
+
 //  song类
 export default class Song {
     constructor({
@@ -18,6 +28,25 @@ export default class Song {
         this.duration = duration
         this.image = image
         this.url = url
+    }
+
+    // 封装获取歌词的方法
+    getLyric() {
+        // 如果此song已经有lyric，则直接返回Promise.resolve,防止重复请求歌词
+        if (this.lyric) {
+            return Promise.resolve(this.lyric)
+        }
+
+        return new Promise((resolve, reject) => {
+            getLyric(this.mid).then((res) => {
+                if (res.retcode === ERR_OK) {
+                    this.lyric = Base64.decode(res.lyric)
+                    resolve(this.lyric)
+                } else {
+                    reject('no lyric')
+                }
+            })
+        })
     }
 }
 
