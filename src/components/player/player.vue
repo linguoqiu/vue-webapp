@@ -24,6 +24,16 @@
                         </div>
                     </div>
                 </div>
+                <!-- 歌词 -->
+                <scroll class="middle-r" ref="lyricList" :data="currentLyric && currentLyric.lines">
+                    <div class="lyric-wrapper">
+                        <div v-if="currentLyric">
+                            <p ref="lyricLine" class="text" :class="{'current': currentLineNum === index }" v-for="(line, index) in currentLyric.lines">
+                                {{line.txt}}
+                            </p>
+                        </div>
+                    </div>
+                </scroll>
             </div>
             <!-- 底部的操作区 -->
             <div class="bottom">
@@ -91,6 +101,7 @@ import ProgressCircle from 'base/progress-circle/progress-circle'
 import { playMode } from 'common/js/config'
 import { shuffle } from 'common/js/util'
 import Lyric from 'lyric-parser'
+import Scroll from 'base/scroll/scroll'
 
 const transform = prefixStyle('transform')
 
@@ -100,7 +111,8 @@ export default {
             songReady: false, // 歌曲是否准备好
             currentTime: 0,
             radius: 32,
-            currentLyric: null
+            currentLyric: null,
+            currentLineNum: 0
         }
     },
     computed: {
@@ -137,7 +149,8 @@ export default {
     },
     components: {
         ProgressBar,
-        ProgressCircle
+        ProgressCircle,
+        Scroll
     },
     methods: {
         // 关闭大播放器界面
@@ -296,9 +309,23 @@ export default {
             // 获取歌词
             this.currentSong.getLyric().then((lyric) => {
                 // 解析歌词
-                this.currentLyric = new Lyric(lyric)
+                this.currentLyric = new Lyric(lyric, this.handleLyric)
+                if (this.playing) {
+                    // 播放歌词
+                    this.currentLyric.play()
+                }
                 console.log(this.currentLyric)
             })
+        },
+        // 创建歌词的回调函数,当歌词变化的时候调用
+        handleLyric({lineNum, txt}) {
+            this.currentLineNum = lineNum
+            if (lineNum > 5) {
+                let lineEl = this.$refs.lyricLine[lineNum - 5]
+                this.$refs.lyricList.scrollToElement(lineEl, 1000)
+            } else {
+                this.$refs.lyricList.scrollTo(0, 0, 1000)
+            }
         },
         // 补0操作
         _pad(num, n = 2) {
@@ -485,7 +512,7 @@ export default {
             color: $color-text-l;
             font-size: $font-size-medium;
             &.current {
-              color: $color-text;
+              color: $color-theme;
             }
           }
         }
