@@ -20,7 +20,7 @@
                 @touchstart.prevent="middleTouchStart"
                 @touchmove.prevent="middleTouchMove"
                 @touchend="middleTouchEnd">
-                <div class="middle-l">
+                <div class="middle-l" ref= "middleL">
                     <div class="cd-wrapper" ref="cdWrapper">
                         <div class="cd" :class="cdCls">
                             <img class="image" :src="currentSong.image">
@@ -111,6 +111,7 @@ import Lyric from 'lyric-parser'
 import Scroll from 'base/scroll/scroll'
 
 const transform = prefixStyle('transform')
+const transitionDuration = prefixStyle('transitionDuration')
 
 export default {
     data() {
@@ -119,7 +120,8 @@ export default {
             currentTime: 0,
             radius: 32,
             currentLyric: null,
-            currentLineNum: 0
+            currentLineNum: 0,
+            currentShow: 'cd'
         }
     },
     computed: {
@@ -154,7 +156,7 @@ export default {
             'sequenceList'
         ])
     },
-    created: {
+    created() {
         // 不需要getter，setter，所以在created声明，不在data()声明
         this.touch = {}
     },
@@ -329,7 +331,7 @@ export default {
             })
         },
         // 创建歌词的回调函数,当歌词变化的时候调用
-        handleLyric({lineNum, txt}) {
+        handleLyric({ lineNum, txt }) {
             this.currentLineNum = lineNum
             if (lineNum > 5) {
                 let lineEl = this.$refs.lyricLine[lineNum - 5]
@@ -359,13 +361,44 @@ export default {
                 return
             }
             // 以屏幕最右边为中心，this.currentShow === 'cd'的话，歌词的最左边在屏幕的最右边，否则，在屏幕左边
-            const left = this.currentShow === 'cd'? 0: -window.innerWidth
+            const left = this.currentShow === 'cd' ? 0 : -window.innerWidth
             // 计算移动的width的范围（在屏幕之间，屏幕最右边开始加移动的距离）
-            const width = Math.min(0,Math.max(-window.innerWidth,left + deltaX))
-            this.$refs.lyricList.$el.style[transform] = `translate3d(${width}px,0,0)`
+            const offsetwidth = Math.min(0, Math.max(-window.innerWidth, left + deltaX))
+            this.touch.percent = Math.abs(offsetwidth / window.innerWidth)
+            this.$refs.lyricList.$el.style[transform] = `translate3d(${offsetwidth}px,0,0)`
+            this.$refs.lyricList.$el.style[transitionDuration] = 0
+            this.$refs.middleL.style.opacity = 1 - this.touch.percent
+            this.$refs.middleL.style[transitionDuration] = 0
         },
         middleTouchEnd() {
-
+            let offsetwidth
+            let opacity
+            // 判断滑动超过屏的1/10的时候，切换页面,cd的界面设置透明度
+            if (this.currentShow === 'cd') {
+                if (this.touch.percent > 0.1) {
+                    offsetwidth = -window.innerWidth
+                    this.currentShow = 'lyric'
+                    opacity = 0
+                } else {
+                    offsetwidth = 0
+                    opacity = 1
+                }
+            } else {
+                if (this.touch.percent < 0.9) {
+                    offsetwidth = 0
+                    this.currentShow = 'cd'
+                    opacity = 1
+                } else {
+                    offsetwidth = -window.innerWidth
+                    opacity = 0
+                }
+            }
+            const time = 300
+            this.$refs.lyricList.$el.style[transform] = `translate3d(${offsetwidth}px,0,0)`
+            //  设置动画过度时间
+            this.$refs.lyricList.$el.style[transitionDuration] = `${time}ms`
+            this.$refs.middleL.style.opacity = opacity
+            this.$refs.middleL.style[transitionDuration] = 0
         },
         // 补0操作
         _pad(num, n = 2) {
@@ -576,7 +609,7 @@ export default {
           &.active {
             width: 20px;
             border-radius: 5px;
-            background: $color-text-ll;
+            background: $color-theme;
           }
         }
       }
