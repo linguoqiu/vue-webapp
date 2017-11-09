@@ -16,7 +16,10 @@
                 <h2 class="subtitle" v-html="currentSong.singer"></h2>
             </div>
             <!-- 唱片图片 -->
-            <div class="middle">
+            <div class="middle" 
+                @touchstart.prevent="middleTouchStart"
+                @touchmove.prevent="middleTouchMove"
+                @touchend="middleTouchEnd">
                 <div class="middle-l">
                     <div class="cd-wrapper" ref="cdWrapper">
                         <div class="cd" :class="cdCls">
@@ -37,6 +40,10 @@
             </div>
             <!-- 底部的操作区 -->
             <div class="bottom">
+                <div class="dot-wrapper">
+                    <span class="dot" :class="{'active': currentShow === 'cd'}"></span>
+                    <span class="dot" :class="{'active': currentShow === 'lyric'}"></span>
+                </div>
                 <div class="progress-wrapper">
                     <span class="time time-l">{{format(currentTime)}}</span>
                     <div class="progress-bar-wrapper">
@@ -146,6 +153,10 @@ export default {
             'mode',
             'sequenceList'
         ])
+    },
+    created: {
+        // 不需要getter，setter，所以在created声明，不在data()声明
+        this.touch = {}
     },
     components: {
         ProgressBar,
@@ -326,6 +337,35 @@ export default {
             } else {
                 this.$refs.lyricList.scrollTo(0, 0, 1000)
             }
+        },
+        // 以下是milldle的切换监听事件函数，用于切换歌词和图片页面
+        middleTouchStart(e) {
+            // 初始化，并记录move开始的坐标
+            this.touch.initiated = true
+            const touch = e.touches[0]
+            this.touch.startX = touch.pageX
+            this.touch.startY = touch.pageY
+        },
+        middleTouchMove(e) {
+            // 没初始化的话，什么都不做
+            if (!this.touch.initiated) {
+                return
+            }
+            const touch = e.touches[0]
+            const deltaX = touch.pageX - this.touch.startX
+            const deltaY = touch.pageY - this.touch.startY
+            // 如果移动的纵坐标大于横坐标，直接返回
+            if (Math.abs(deltaY) > Math.abs(deltaX)) {
+                return
+            }
+            // 以屏幕最右边为中心，this.currentShow === 'cd'的话，歌词的最左边在屏幕的最右边，否则，在屏幕左边
+            const left = this.currentShow === 'cd'? 0: -window.innerWidth
+            // 计算移动的width的范围（在屏幕之间，屏幕最右边开始加移动的距离）
+            const width = Math.min(0,Math.max(-window.innerWidth,left + deltaX))
+            this.$refs.lyricList.$el.style[transform] = `translate3d(${width}px,0,0)`
+        },
+        middleTouchEnd() {
+
         },
         // 补0操作
         _pad(num, n = 2) {
