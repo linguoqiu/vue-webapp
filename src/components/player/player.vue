@@ -398,7 +398,7 @@ export default {
             //  设置动画过度时间
             this.$refs.lyricList.$el.style[transitionDuration] = `${time}ms`
             this.$refs.middleL.style.opacity = opacity
-            this.$refs.middleL.style[transitionDuration] = 0
+            this.$refs.middleL.style[transitionDuration] = `${time}ms`
         },
         // 补0操作
         _pad(num, n = 2) {
