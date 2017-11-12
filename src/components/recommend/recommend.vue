@@ -13,7 +13,7 @@
         <scroll class="recommend-content" :data='discList' ref="scroll">
             <div class="recommend-list">
                 <ul>
-                    <li v-for="item in discList" class="item">
+                    <li @click="selectItem(item)" v-for="item in discList" class="item">
                         <div class="icon">
                             <!-- v-lazy图片懒加载：使用了vue-lazy -->
                             <img width="60" height="60" v-lazy="item.imgurl">
@@ -29,6 +29,7 @@
                 <loading></loading>
             </div>
         </scroll>
+        <router-view></router-view>
     </div>
 </template>
 
@@ -39,6 +40,7 @@ import Slider from 'base/slider/slider'
 import { getRecommend, getDiscList } from 'api/recommend'
 import { ERR_OK } from 'api/config'
 import { playlistMixin } from 'common/js/mixin'
+import {mapMutations} from 'vuex'
 
 export default {
     mixins: [playlistMixin],
@@ -63,6 +65,12 @@ export default {
             this.$refs.recommend.style.bottom = bottom
             this.$refs.scroll.refresh()
         },
+        selectItem(item) {
+            this.$router.push({
+                path: `/recommend/${item.dissid}`
+            })
+            this.setDisc(item)
+        },
         // 获取轮播图的资源：图片，连接等
         _getRecommend() {
             getRecommend().then((res) => {
@@ -78,7 +86,10 @@ export default {
                     this.discList = res.data.list
                 }
             })
-        }
+        },
+        ...mapMutations({
+            setDisc: 'SET_DISC'
+        })
     }
 }
 </script>
