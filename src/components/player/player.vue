@@ -23,6 +23,9 @@
                             <img class="image" :src="currentSong.image">
                         </div>
                     </div>
+                    <div class="playing-lyric-wrapper">
+                        <div class="playing-lyric">{{playingLyric}}</div>
+                    </div>
                 </div>
                 <!-- 歌词 -->
                 <scroll class="middle-r" ref="lyricList" :data="currentLyric && currentLyric.lines">
@@ -126,7 +129,8 @@ export default {
             radius: 32,
             currentLyric: null,
             currentLineNum: 0,
-            currentShow: 'cd'
+            currentShow: 'cd',
+            playingLyric: ''
         }
     },
     computed: {
@@ -233,8 +237,15 @@ export default {
             this.$refs.cdWrapper.style[transform] = ''
         },
         togglePlaying() {
+            if (!this.songReady) {
+                return
+            }
             // 控制暂停和开始
             this.setPlayingState(!this.playing)
+            // 控制歌词的暂停和开始
+            if (this.currentLyric) {
+                this.currentLyric.togglePlay()
+            }
         },
         // audio的结束事件响应方法
         end() {
@@ -248,21 +259,28 @@ export default {
         loop() {
             this.$refs.audio.currentTime = 0
             this.$refs.audio.play()
+            if (this.currentLyric) {
+                this.currentLyric.seek(0)
+            }
         },
         // 下一首歌
         next() {
             if (!this.songReady) {
                 return
             }
-            let index = this.currentIndex + 1
-            // 最后一首的时候，返回到第一首
-            if (index === this.playList.length) {
-                index = 0
-            }
-            this.setCurrentIndex(index)
-            // 下一首的时候如果不是非播放状态，则改变状态
-            if (!this.playing) {
-                this.togglePlaying()
+            if (this.playList.length === 1) {
+                this.loop()
+            } else {
+                let index = this.currentIndex + 1
+                // 最后一首的时候，返回到第一首
+                if (index === this.playList.length) {
+                    index = 0
+                }
+                this.setCurrentIndex(index)
+                // 下一首的时候如果不是非播放状态，则改变状态
+                if (!this.playing) {
+                    this.togglePlaying()
+                }
             }
             this.songReady = false
         },
@@ -271,14 +289,18 @@ export default {
             if (!this.songReady) {
                 return
             }
-            let index = this.currentIndex - 1
-            // 最后一首的时候，返回到第一首
-            if (index === -1) {
-                index = this.playList.length - 1
-            }
-            this.setCurrentIndex(index)
-            if (!this.playing) {
-                this.togglePlaying()
+            if (this.playList.length === 1) {
+                this.loop()
+            } else {
+                let index = this.currentIndex - 1
+                // 最后一首的时候，返回到第一首
+                if (index === -1) {
+                    index = this.playList.length - 1
+                }
+                this.setCurrentIndex(index)
+                if (!this.playing) {
+                    this.togglePlaying()
+                }
             }
             this.songReady = false
         },
@@ -302,10 +324,14 @@ export default {
             return `${minute}:${second}`
         },
         onProgressBarChange(percent) {
-            this.$refs.audio.currentTime = this.currentSong.duration * percent
+            const currentTime = this.currentSong.duration * percent
+            this.$refs.audio.currentTime = currentTime
             // 如果没播放的，选择播放
             if (!this.playing) {
                 this.togglePlaying()
+            }
+            if (this.currentLyric) {
+                this.currentLyric.seek(currentTime * 1000)
             }
         },
         //  改变播放模式
@@ -341,6 +367,11 @@ export default {
                     this.currentLyric.play()
                 }
                 console.log(this.currentLyric)
+            }).catch(() => {
+                // 获取歌词异常的时候
+                this.currentLyric = null
+                this.playingLyric = ''
+                this.currentLineNum = 0
             })
         },
         // 创建歌词的回调函数,当歌词变化的时候调用
@@ -355,6 +386,7 @@ export default {
             } else {
                 this.$refs.lyricList.scrollTo(0, 0, 1000)
             }
+            this.playingLyric = txt
         },
         // 以下是milldle的切换监听事件函数，用于切换歌词和图片页面
         middleTouchStart(e) {
@@ -457,12 +489,16 @@ export default {
             if (newSong.id === oldSong.id) {
                 return
             }
+            // 防止下首和上首时歌词闪的情况
+            if (this.currentLyric) {
+                this.currentLyric.stop()
+            }
             // 将回调延迟到下次 DOM 更新循环之后执行。在修改数据之后立即使用它，然后等待 DOM 更新
             // 如果不调用的话会出现dom错误
-            this.$nextTick(() => {
+            setTimeout(() => {
                 this.$refs.audio.play()
                 this.getLyric()
-            })
+            }, 1000)
         },
         // 监听播放状态的变化,控制audio的播放和暂停
         playing(newPlaying) {
@@ -480,304 +516,304 @@ export default {
 @import "~common/stylus/mixin";
 
 .player {
-    .normal-player {
-        position: fixed;
-        left: 0;
-        right: 0;
-        top: 0;
-        bottom: 0;
-        z-index: 150;
-        background: $color-background;
-        .background {
-            position: absolute;
-            left: 0;
-            top: 0;
+  .normal-player {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 150;
+    background: $color-background;
+    .background {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      opacity: 0.6;
+      filter: blur(20px);
+    }
+    .top {
+      position: relative;
+      margin-bottom: 25px;
+      .back {
+        position: absolute;
+        top: 3px;
+        left: 6px;
+        z-index: 50;
+        .icon-back {
+          display: block;
+          padding: 9px;
+          font-size: $font-size-large-x;
+          color: $color-theme;
+          transform: rotate(-90deg);
+        }
+      }
+      .title {
+        width: 70%;
+        margin: 0 auto;
+        line-height: 40px;
+        text-align: center;
+        @include no-wrap();
+        font-size: $font-size-large;
+        color: $color-text;
+      }
+      .subtitle {
+        line-height: 20px;
+        text-align: center;
+        font-size: $font-size-medium;
+        color: $color-text;
+      }
+    }
+    .middle {
+      position: fixed;
+      width: 100%;
+      top: 80px;
+      bottom: 170px;
+      white-space: nowrap;
+      font-size: 0;
+      .middle-l {
+        display: inline-block;
+        vertical-align: top;
+        position: relative;
+        width: 100%;
+        height: 0;
+        padding-top: 80%;
+        .cd-wrapper {
+          position: absolute;
+          left: 10%;
+          top: 0;
+          width: 80%;
+          height: 100%;
+          .cd {
             width: 100%;
             height: 100%;
-            z-index: -1;
-            opacity: 0.6;
-            filter: blur(20px);
+            box-sizing: border-box;
+            border: 10px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            &.play {
+              animation: rotate 20s linear infinite; // 不停的旋转
+            }
+            &.pause {
+              animation-play-state: paused;
+            }
+            .image {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 100%;
+              height: 100%;
+              border-radius: 50%;
+            }
+          }
         }
-        .top {
-            position: relative;
-            margin-bottom: 25px;
-            .back {
-                position: absolute;
-                top: 3px;
-                left: 6px;
-                z-index: 50;
-                .icon-back {
-                    display: block;
-                    padding: 9px;
-                    font-size: $font-size-large-x;
-                    color: $color-theme;
-                    transform: rotate(-90deg);
-                }
-            }
-            .title {
-                width: 70%;
-                margin: 0 auto;
-                line-height: 40px;
-                text-align: center;
-                @include no-wrap();
-                font-size: $font-size-large;
-                color: $color-text;
-            }
-            .subtitle {
-                line-height: 20px;
-                text-align: center;
-                font-size: $font-size-medium;
-                color: $color-text;
-            }
+        .playing-lyric-wrapper {
+          width: 80%;
+          margin: 30px auto 0;
+          overflow: hidden;
+          text-align: center;
+          .playing-lyric {
+            height: 20px;
+            line-height: 20px;
+            font-size: $font-size-medium;
+            color: $color-text-l;
+          }
         }
-        .middle {
-            position: fixed;
-            width: 100%;
-            top: 80px;
-            bottom: 170px;
-            white-space: nowrap;
-            font-size: 0;
-            .middle-l {
-                display: inline-block;
-                vertical-align: top;
-                position: relative;
-                width: 100%;
-                height: 0;
-                padding-top: 80%;
-                .cd-wrapper {
-                    position: absolute;
-                    left: 10%;
-                    top: 0;
-                    width: 80%;
-                    height: 100%;
-                    .cd {
-                        width: 100%;
-                        height: 100%;
-                        box-sizing: border-box;
-                        border: 10px solid rgba(255, 255, 255, 0.1);
-                        border-radius: 50%;
-                        &.play {
-                            animation: rotate 20s linear infinite; // 不停的旋转
-                        }
-                        &.pause {
-                            animation-play-state: paused;
-                        }
-                        .image {
-                            position: absolute;
-                            left: 0;
-                            top: 0;
-                            width: 100%;
-                            height: 100%;
-                            border-radius: 50%;
-                        }
-                    }
-                }
-                .playing-lyric-wrapper {
-                    width: 80%;
-                    margin: 30px auto 0;
-                    overflow: hidden;
-                    text-align: center;
-                    .playing-lyric {
-                        height: 20px;
-                        line-height: 20px;
-                        font-size: $font-size-medium;
-                        color: $color-text-l;
-                    }
-                }
+      }
+      .middle-r {
+        display: inline-block;
+        vertical-align: top;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        .lyric-wrapper {
+          width: 80%;
+          margin: 0 auto;
+          overflow: hidden;
+          text-align: center;
+          .text {
+            line-height: 32px;
+            color: $color-text-l;
+            font-size: $font-size-medium;
+            &.current {
+              color: $color-theme;
             }
-            .middle-r {
-                display: inline-block;
-                vertical-align: top;
-                width: 100%;
-                height: 100%;
-                overflow: hidden;
-                .lyric-wrapper {
-                    width: 80%;
-                    margin: 0 auto;
-                    overflow: hidden;
-                    text-align: center;
-                    .text {
-                        line-height: 32px;
-                        color: $color-text-l;
-                        font-size: $font-size-medium;
-                        &.current {
-                            color: $color-theme;
-                        }
-                    }
-                }
-            }
+          }
         }
-        .bottom {
-            position: absolute;
-            bottom: 50px;
-            width: 100%;
-            .dot-wrapper {
-                text-align: center;
-                font-size: 0;
-                .dot {
-                    display: inline-block;
-                    vertical-align: middle;
-                    margin: 0 4px;
-                    width: 8px;
-                    height: 8px;
-                    border-radius: 50%;
-                    background: $color-text-l;
-                    &.active {
-                        width: 20px;
-                        border-radius: 5px;
-                        background: $color-theme;
-                    }
-                }
-            }
-            .progress-wrapper {
-                display: flex;
-                align-items: center;
-                width: 80%;
-                margin: 0 auto;
-                padding: 10px 0;
-                .time {
-                    color: $color-text;
-                    font-size: $font-size-small;
-                    flex: 0 0 30px;
-                    line-height: 30px;
-                    width: 30px;
-                    &.time-l {
-                        text-align: left;
-                    }
-                    &.time-r {
-                        text-align: right;
-                    }
-                }
-                .progress-bar-wrapper {
-                    flex: 1;
-                }
-            }
-            .operators {
-                display: flex;
-                align-items: center;
-                .icon {
-                    flex: 1;
-                    color: $color-theme;
-                    &.disable {
-                        color: $color-theme-d;
-                    }
-                    i {
-                        font-size: 30px;
-                    }
-                }
-                .i-left {
-                    text-align: right;
-                }
-                .i-center {
-                    padding: 0 20px;
-                    text-align: center;
-                    i {
-                        font-size: 40px;
-                    }
-                }
-                .i-right {
-                    text-align: left;
-                }
-                .icon-favorite {
-                    color: $color-sub-theme;
-                }
-            }
-        }
-        &.normal-enter-active,
-        &.normal-leave-active {
-            transition: all 0.4s;
-            .bottom,
-            .top {
-                transition: all 0.4s cubic-bezier(0.86, 0.18, 0.82, 1.32);
-            }
-        }
-        &.normal-enter,
-        &.normal-leave-to {
-            opacity: 0;
-            .top {
-                transform: translate3d(0, -100px, 0);
-            }
-            .bottom {
-                transform: translate3d(0, 100px, 0);
-            }
-        }
+      }
     }
-    .mini-player {
+    .bottom {
+      position: absolute;
+      bottom: 50px;
+      width: 100%;
+      .dot-wrapper {
+        text-align: center;
+        font-size: 0;
+        .dot {
+          display: inline-block;
+          vertical-align: middle;
+          margin: 0 4px;
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: $color-text-l;
+          &.active {
+            width: 20px;
+            border-radius: 5px;
+            background: $color-theme;
+          }
+        }
+      }
+      .progress-wrapper {
         display: flex;
         align-items: center;
-        position: fixed;
-        left: 0;
-        bottom: 0;
-        z-index: 180;
-        width: 100%;
-        height: 60px;
-        background: $color-highlight-background;
-        &.mini-enter-active,
-        &.mini-leave-active {
-            transition: all 0.4s;
+        width: 80%;
+        margin: 0 auto;
+        padding: 10px 0;
+        .time {
+          color: $color-text;
+          font-size: $font-size-small;
+          flex: 0 0 30px;
+          line-height: 30px;
+          width: 30px;
+          &.time-l {
+            text-align: left;
+          }
+          &.time-r {
+            text-align: right;
+          }
         }
-        &.mini-enter,
-        &.mini-leave-to {
-            opacity: 0;
+        .progress-bar-wrapper {
+          flex: 1;
         }
+      }
+      .operators {
+        display: flex;
+        align-items: center;
         .icon {
-            flex: 0 0 40px;
-            width: 40px;
-            padding: 0 10px 0 20px;
-            img {
-                border-radius: 50%;
-                &.play {
-                    animation: rotate 10s linear infinite;
-                }
-                &.pause {
-                    animation-play-state: paused;
-                }
-            }
+          flex: 1;
+          color: $color-theme;
+          &.disable {
+            color: $color-theme-d;
+          }
+          i {
+            font-size: 30px;
+          }
         }
-        .text {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            flex: 1;
-            line-height: 20px;
-            overflow: hidden;
-            .name {
-                margin-bottom: 2px;
-                @include no-wrap();
-                font-size: $font-size-medium;
-                color: $color-text;
-            }
-            .desc {
-                @include no-wrap();
-                font-size: $font-size-small;
-                color: $color-text-d;
-            }
+        .i-left {
+          text-align: right;
         }
-        .control {
-            flex: 0 0 30px;
-            width: 30px;
-            padding: 0 10px;
-            .icon-pause-mini,
-            .icon-play-mini,
-            .icon-playlist {
-                font-size: 30px;
-                color: $color-theme-d;
-            }
-            .icon-mini {
-                font-size: 32px;
-                position: absolute;
-                left: 0;
-                top: 0;
-            }
+        .i-center {
+          padding: 0 20px;
+          text-align: center;
+          i {
+            font-size: 40px;
+          }
         }
+        .i-right {
+          text-align: left;
+        }
+        .icon-favorite {
+          color: $color-sub-theme;
+        }
+      }
     }
-    @keyframes rotate {
-        0% {
-            transform: rotate(0);
-        }
-        100% {
-            transform: rotate(360deg);
-        }
+    &.normal-enter-active,
+    &.normal-leave-active {
+      transition: all 0.4s;
+      .bottom,
+      .top {
+        transition: all 0.4s cubic-bezier(0.86, 0.18, 0.82, 1.32);
+      }
     }
+    &.normal-enter,
+    &.normal-leave-to {
+      opacity: 0;
+      .top {
+        transform: translate3d(0, -100px, 0);
+      }
+      .bottom {
+        transform: translate3d(0, 100px, 0);
+      }
+    }
+  }
+  .mini-player {
+    display: flex;
+    align-items: center;
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    z-index: 180;
+    width: 100%;
+    height: 60px;
+    background: $color-highlight-background;
+    &.mini-enter-active,
+    &.mini-leave-active {
+      transition: all 0.4s;
+    }
+    &.mini-enter,
+    &.mini-leave-to {
+      opacity: 0;
+    }
+    .icon {
+      flex: 0 0 40px;
+      width: 40px;
+      padding: 0 10px 0 20px;
+      img {
+        border-radius: 50%;
+        &.play {
+          animation: rotate 10s linear infinite;
+        }
+        &.pause {
+          animation-play-state: paused;
+        }
+      }
+    }
+    .text {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      flex: 1;
+      line-height: 20px;
+      overflow: hidden;
+      .name {
+        margin-bottom: 2px;
+        @include no-wrap();
+        font-size: $font-size-medium;
+        color: $color-text;
+      }
+      .desc {
+        @include no-wrap();
+        font-size: $font-size-small;
+        color: $color-text-d;
+      }
+    }
+    .control {
+      flex: 0 0 30px;
+      width: 30px;
+      padding: 0 10px;
+      .icon-pause-mini,
+      .icon-play-mini,
+      .icon-playlist {
+        font-size: 30px;
+        color: $color-theme-d;
+      }
+      .icon-mini {
+        font-size: 32px;
+        position: absolute;
+        left: 0;
+        top: 0;
+      }
+    }
+  }
+  @keyframes rotate {
+    0% {
+      transform: rotate(0);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-    <div class="recommend">
+    <div class="recommend" ref="recommend">
         <div v-if="recommends.length" class="slider-wrapper">
             <slider>
                 <div v-for="item in recommends">
@@ -10,7 +10,7 @@
             </slider>
         </div>
         <h1 class="list-title">热门歌单推荐</h1>
-        <scroll class="recommend-content" :data='discList'>
+        <scroll class="recommend-content" :data='discList' ref="scroll">
             <div class="recommend-list">
                 <ul>
                     <li v-for="item in discList" class="item">
@@ -38,8 +38,10 @@ import Scroll from 'base/scroll/scroll'
 import Slider from 'base/slider/slider'
 import { getRecommend, getDiscList } from 'api/recommend'
 import { ERR_OK } from 'api/config'
+import { playlistMixin } from 'common/js/mixin'
 
 export default {
+    mixins: [playlistMixin],
     data() {
         return {
             recommends: [],
@@ -56,6 +58,11 @@ export default {
         Loading
     },
     methods: {
+        handdlePlaylist(playlist) {
+             const bottom = playlist.length > 0 ? '60px' : ''
+            this.$refs.recommend.style.bottom = bottom
+            this.$refs.scroll.refresh()
+        },
         // 获取轮播图的资源：图片，连接等
         _getRecommend() {
             getRecommend().then((res) => {

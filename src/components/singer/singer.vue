@@ -1,8 +1,7 @@
 <template>
     <div>
-        <div class="singer" v-show="singers.length">
-            <list-view :data="singers" @select='selectSinger'>
-            </list-view>
+        <div class="singer" v-show="singers.length" ref="singer">
+            <list-view :data="singers" @select='selectSinger' ref="singerList"></list-view>
         </div>
         <div class="loading-container" v-show="!singers.length">
             <loading></loading>
@@ -19,11 +18,13 @@ import Singer from 'common/js/singer'
 import ListView from 'base/listview/listview'
 import Loading from 'base/loading/loading'
 import { mapMutations } from 'vuex'
+import { playlistMixin } from 'common/js/mixin'
 
 const HOT_NAME = '热门'
 const HOT_SINGER_LEN = 10
 
 export default {
+    mixins: [playlistMixin],
     data() {
         return {
             singers: []
@@ -44,6 +45,11 @@ export default {
             })
             // 相当于 commit mutation 'singer'
             this.setSinger(singer)
+        },
+        handdlePlaylist(playlist) {
+            const bottom = playlist.length > 0 ? '60px' : ''
+            this.$refs.singer.style.bottom = bottom
+            this.$refs.singerList.refresh()
         },
         // 请求歌手数据
         _getSingerList() {
