@@ -27,6 +27,7 @@ export default {
     created() {
         //  监听query变化，然后发送query事件给外部
         this.$watch('query', (newQuery) => {
+            // 发送query事件
             this.$emit('query', newQuery)
         })
     }
