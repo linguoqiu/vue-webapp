@@ -23,6 +23,7 @@ export default {
         clearQuery() {
             this.query = ''
         },
+        // 提供设置搜索框的方法
         setQuery(query) {
             this.query = query
         }

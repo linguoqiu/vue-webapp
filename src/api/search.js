@@ -1,3 +1,5 @@
+//  search页面的相关api方法
+
 import jsonp from 'common/js/jsonp'
 import {commonParams, options} from './config'
 

@@ -41,6 +41,7 @@ export default {
             this.$refs.searchBox.setQuery(query)
         },
         _getHotKey() {
+            // 获取热门搜索的关键词
             getHotKey().then((res) => {
                 if (res.code === ERR_OK) {
                     // 截取前10个数据
