@@ -1,5 +1,5 @@
 <template>
-  <scroll ref="suggest"
+    <scroll ref="suggest"
         class="suggest"
         :data="result"
         :pullup="pullup"
@@ -20,7 +20,7 @@
       <!-- <div v-show="!hasMore && !result.length" class="no-result-wrapper">
           <no-result title="抱歉，暂无搜索结果"></no-result>
       </div> -->
-  </scroll>
+    </scroll>
 </template>
 
 
@@ -41,40 +41,40 @@ export default {
 @import "~common/stylus/variable";
 @import "~common/stylus/mixin";
 
-.suggest{
-    height: 100%;
-    overflow: hidden;
-    .suggest-list{
-        padding: 0 30px;
-        .suggest-item{
-            display: flex;
-            align-items: center;
-            padding-bottom: 20px;
-        }
-        .icon{
-            flex: 0 0 30px;
-            width: 30px;
-            [class^="icon-"]{
-                font-size: 14px;
-                color: $color-text-d;
-            }
-        }
-        .name{
-            flex: 1;
-            font-size: $font-size-medium;
-            color: $color-text-d;
-            overflow: hidden;
-            .text{
-                @include no-wrap();
-            }
-        }
+.suggest {
+  height: 100%;
+  overflow: hidden;
+  .suggest-list {
+    padding: 0 30px;
+    .suggest-item {
+      display: flex;
+      align-items: center;
+      padding-bottom: 20px;
     }
-    .no-result-wrapper{
-        position: absolute;
-        widows: 100%;
-        top: 58%;
-        transform: translateY(-50%)
+    .icon {
+      flex: 0 0 30px;
+      width: 30px;
+      [class^="icon-"] {
+        font-size: 14px;
+        color: $color-text-d;
+      }
     }
+    .name {
+      flex: 1;
+      font-size: $font-size-medium;
+      color: $color-text-d;
+      overflow: hidden;
+      .text {
+        @include no-wrap();
+      }
+    }
+  }
+  .no-result-wrapper {
+    position: absolute;
+    widows: 100%;
+    top: 58%;
+    transform: translateY(-50%);
+  }
 }
 </style>
 
