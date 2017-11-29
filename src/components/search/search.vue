@@ -1,9 +1,9 @@
 <template>
   <div class="search">
       <div class="search-box-wrapper">
-        <search-box ref="searchBox"></search-box>
+        <search-box ref="searchBox" @query="onQueryChange"></search-box>
       </div>
-      <div class="shortcut-wrapper">
+      <div class="shortcut-wrapper" v-show="!query">
           <div class="shortcut">
               <div class="hot-key">
                   <h1 class="title">热门搜索</h1>
@@ -15,6 +15,9 @@
               </div>
           </div>
       </div>
+      <div class="search-result" v-show="query">
+          <suggest :query="query"></suggest>
+      </div>
   </div>
 </template>
 
@@ -22,6 +25,7 @@
 import SearchBox from 'base/search-box/search-box'
 import { getHotKey } from 'api/search'
 import { ERR_OK } from 'api/config.js'
+import Suggest from 'components/suggest/suggest'
 
 export default {
     created() {
@@ -29,16 +33,21 @@ export default {
     },
     data() {
         return {
-            hotkey: []
+            hotkey: [],
+            query: ''
         }
     },
     components: {
-        SearchBox
+        SearchBox,
+        Suggest
     },
     methods: {
         addQuery(query) {
-            console.log(this)
             this.$refs.searchBox.setQuery(query)
+        },
+        // 搜索框变化时候触发的方法
+        onQueryChange(query) {
+            this.query = query
         },
         _getHotKey() {
             // 获取热门搜索的关键词

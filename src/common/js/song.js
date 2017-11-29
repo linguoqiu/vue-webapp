@@ -65,7 +65,7 @@ export function createSong(musicData) {
 }
 
 // 分析歌手有2个人的情况
-function filterSinger(singer) {
+export function filterSinger(singer) {
     let ret = []
     if (!singer) {
         return ''
