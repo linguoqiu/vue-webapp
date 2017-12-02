@@ -1,5 +1,6 @@
 <template>
     <scroll ref="suggest"
+        :data="result"
         class="suggest">
       <ul class="suggest-list">
           <li @click="select(item)" class="suggest-item" v-for="item in result">
@@ -24,7 +25,7 @@ import Scroll from 'base/scroll/scroll'
 import Loading from 'base/loading/loading'
 import { search } from 'api/search'
 import { ERR_OK } from 'api/config'
-import { filterSinger } from 'common/js/song'
+import { createSong } from 'common/js/song'
 
 const TYPE_SINGER = 'singer'
 
@@ -50,7 +51,6 @@ export default {
         _search() {
             search(this.query, this.page, this.showSinger).then((res) => {
                 if (res.code === ERR_OK) {
-                    console.log(res)
                     this.result = this._genResult(res.data)
                 }
             })
@@ -62,8 +62,17 @@ export default {
                 ret.push({ ...data.zhida, ...{ type: TYPE_SINGER } })
             }
             if (data.song) {
-                ret = ret.concat(data.song.list)
+                ret = ret.concat(this._normalizeSongs(data.song.list))
             }
+            return ret
+        },
+        _normalizeSongs(list) {
+            let ret = []
+            list.forEach((musicData) => {
+                if (musicData.songid && musicData.albumid) {
+                    ret.push(createSong(musicData))
+                }
+            })
             return ret
         },
         getIconCls(item) {
@@ -77,7 +86,7 @@ export default {
             if (item.type === TYPE_SINGER) {
                 return item.singername
             } else {
-                return `${item.songname} - ${filterSinger(item.singer)}`
+                return `${item.name} - ${item.singer}`
             }
         }
     },
