@@ -26,6 +26,10 @@ export default {
         listenScroll: {
             type: Boolean,
             default: false
+        },
+        pullup: {
+            type: Boolean,
+            default: false
         }
     },
     mounted() {
@@ -51,6 +55,17 @@ export default {
                 this.scroll.on('scroll', (pos) => {
                     // 触发当前实例上的事件。附加参数都会传给监听器回调。
                     me.$emit('scroll', pos)
+                })
+            }
+
+            // 如果又pullup，则处理
+            if (this.pullup) {
+                // 监听scrollEnd事件
+                this.scroll.on('scrollEnd', () => {
+                    // 拖动快到底部的时候
+                    if (this.scroll.y <= (this.scroll.maxScrollY + 50)) {
+                        this.$emit('scrollToEnd')
+                    }
                 })
             }
         },
