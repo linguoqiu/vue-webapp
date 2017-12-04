@@ -15,3 +15,18 @@ export function shuffle(arr) {
     }
     return _arr
 }
+
+// 返回一个节流函数,设定的时间内只执行一次
+export function debounce(func, delay) {
+    let timer
+    // 返回一个节流函数
+    return function (...args) {
+        if (timer) {
+            clearTimeout(timer)
+        }
+
+        timer = setTimeout(() => {
+            func.apply(this.args)
+        }, delay)
+    }
+}

@@ -7,6 +7,7 @@
 </template>
 
 <script type="text/ecmascript-6">
+import { debounce } from 'common/js/util'
 export default {
     data() {
         return {
@@ -30,10 +31,12 @@ export default {
     },
     created() {
         //  监听query变化，然后发送query事件给外部
-        this.$watch('query', (newQuery) => {
+        // debounce作用： 200ms内不会多次调用此事件
+        this.$watch('query', debounce((newQuery) => {
             // 发送query事件
+            console.log(newQuery)
             this.$emit('query', newQuery)
-        })
+        }, 200))
     }
 }
 </script>
