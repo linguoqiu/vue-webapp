@@ -1,7 +1,7 @@
 <template>
   <div class="search-box">
       <i class="icon-search"></i>
-      <input  class="box" v-model="query" :placeholder="placeholder">
+      <input ref="query" class="box" v-model="query" :placeholder="placeholder">
       <i v-show="query" @click="clearQuery()" class="icon-dismiss"></i>
   </div>
 </template>
@@ -27,6 +27,10 @@ export default {
         // 提供设置搜索框的方法
         setQuery(query) {
             this.query = query
+        },
+        // 失去焦点的方法
+        blur() {
+            this.$refs.query.blur()
         }
     },
     created() {
@@ -34,7 +38,6 @@ export default {
         // debounce作用： 200ms内不会多次调用此事件
         this.$watch('query', debounce((newQuery) => {
             // 发送query事件
-            console.log(newQuery)
             this.$emit('query', newQuery)
         }, 200))
     }

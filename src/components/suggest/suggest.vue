@@ -2,7 +2,9 @@
     <scroll ref="suggest" class="suggest"
         :data="result" 
         :pullup="pullup"
-        @scrollToEnd="searchMore">
+        :beforeScroll="beforeScroll"
+        @scrollToEnd="searchMore"
+        @beforeScroll="listScroll">
       <ul class="suggest-list">
           <li @click="selectItem(item)" class="suggest-item" v-for="item in result">
               <div class="icon">
@@ -51,7 +53,8 @@ export default {
             page: 1,
             result: [],
             pullup: true,
-            hasMore: true  // 标志位
+            hasMore: true,  // 标志位
+            beforeScroll: true
         }
     },
     methods: {
@@ -119,6 +122,9 @@ export default {
                     this._checkMore(res.data)
                 }
             })
+        },
+        listScroll() {
+            this.$emit('listScroll')
         },
         selectItem(item) {
             if (item.type === TYPE_SINGER) {
