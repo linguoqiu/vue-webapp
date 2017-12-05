@@ -16,7 +16,7 @@
           </div>
       </div>
       <div class="search-result" v-show="query">
-          <suggest :query="query" @listScroll="blurInput"></suggest>
+          <suggest :query="query" @listScroll="blurInput" @select="saveSearch"></suggest>
       </div>
       <router-view></router-view>
   </div>
@@ -61,6 +61,10 @@ export default {
         },
         blurInput() {
             this.$refs.searchBox.blur()
+        },
+        // 保存搜索结果
+        saveSearch() {
+
         }
     }
 }

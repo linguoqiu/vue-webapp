@@ -139,6 +139,8 @@ export default {
             } else {
                 this.insertSong(item)
             }
+            // 业务逻辑不在这个组件处理
+            this.$emit('select')
         },
         ...mapMutations({
             setSinger: 'SET_SINGER'
