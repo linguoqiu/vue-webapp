@@ -1,6 +1,7 @@
 import {
     playMode
 } from 'common/js/config'
+import {loadSearch} from 'common/js/cache'
 
 //  定义状态
 const state = {
@@ -13,7 +14,7 @@ const state = {
     currentIndex: -1, // 当前歌曲的index
     disc: {},
     topList: {},
-    searchHistory: []
+    searchHistory: loadSearch() // 从本地存储获取初始值
 }
 
 export default state

@@ -27,6 +27,7 @@ import SearchBox from 'base/search-box/search-box'
 import { getHotKey } from 'api/search'
 import { ERR_OK } from 'api/config.js'
 import Suggest from 'components/suggest/suggest'
+import {mapActions} from 'vuex'
 
 export default {
     created() {
@@ -64,8 +65,11 @@ export default {
         },
         // 保存搜索结果
         saveSearch() {
-
-        }
+            this.saveSearchHistory(this.query)
+        },
+        ...mapActions([
+            'saveSearchHistory'
+        ])
     }
 }
 </script>
