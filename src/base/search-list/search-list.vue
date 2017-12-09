@@ -25,12 +25,20 @@ export default {
 
 <style lang="scss" scoped>
 @import "~common/stylus/variable";
+@import "~common/stylus/mixin";
 
 .search-list{
     .search-item{
         display: flex;
         align-items: center;
         height: 40px;
+        overflow: hidden;
+        &.list-enter-active, &.list-leave-active{
+            transition: all 0.1s
+        }
+        &.list-enter, &.list-leave-to{
+            height: 0;
+        }
         .text{
             flex: 1;
             color: $color-text-l

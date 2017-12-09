@@ -20,6 +20,9 @@
                           <i class="icon-clear"></i>
                       </span>
                   </h1>
+                  <search-list :searches="searchHistory">
+
+                  </search-list>
               </div>
           </div>
       </div>
@@ -35,6 +38,7 @@ import SearchBox from 'base/search-box/search-box'
 import { getHotKey } from 'api/search'
 import { ERR_OK } from 'api/config.js'
 import Suggest from 'components/suggest/suggest'
+import SearchList from 'base/search-list/search-list'
 import {mapActions, mapGetters} from 'vuex'
 
 export default {
@@ -54,7 +58,8 @@ export default {
     },
     components: {
         SearchBox,
-        Suggest
+        Suggest,
+        SearchList
     },
     methods: {
         addQuery(query) {
