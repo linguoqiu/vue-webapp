@@ -13,6 +13,14 @@
                       </li>
                   </ul>
               </div>
+              <div class="search-history" v-show="searchHistory.length">
+                  <h1 class="title">
+                      <span class="text">搜索历史</span>
+                      <span class="clear">
+                          <i class="icon-clear"></i>
+                      </span>
+                  </h1>
+              </div>
           </div>
       </div>
       <div class="search-result" v-show="query">
@@ -27,7 +35,7 @@ import SearchBox from 'base/search-box/search-box'
 import { getHotKey } from 'api/search'
 import { ERR_OK } from 'api/config.js'
 import Suggest from 'components/suggest/suggest'
-import {mapActions} from 'vuex'
+import {mapActions, mapGetters} from 'vuex'
 
 export default {
     created() {
@@ -38,6 +46,11 @@ export default {
             hotkey: [],
             query: ''
         }
+    },
+    computed: {
+        ...mapGetters([
+            'searchHistory'
+        ])
     },
     components: {
         SearchBox,
