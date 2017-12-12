@@ -20,6 +20,14 @@ function insertArray(arr, val, compare, maxLen) {
     }
 }
 
+//  从列表中删除一个项目
+function deleteFromArray(arr, compare) {
+    const index = arr.findIndex(compare)
+    if (index > -1) {
+        arr.splice(index, 1)
+    }
+}
+
 // 把query插入到Searches中，并保存到storage中，最后返回出去
 export function saveSearch(query) {
     let searches = storage.get(SEARCH_KEY, [])
@@ -32,4 +40,18 @@ export function saveSearch(query) {
 
 export function loadSearch() {
     return storage.get(SEARCH_KEY, [])
+}
+
+export function deleteSearch(query) {
+    let searches = storage.get(SEARCH_KEY, [])
+    deleteFromArray(searches, (item) => {
+        return item === query
+    })
+    storage.set(SEARCH_KEY, searches)
+    return searches
+}
+
+export function clearSearch() {
+    storage.remove(SEARCH_KEY)
+    return []
 }

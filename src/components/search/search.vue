@@ -16,12 +16,11 @@
               <div class="search-history" v-show="searchHistory.length">
                   <h1 class="title">
                       <span class="text">搜索历史</span>
-                      <span class="clear">
+                      <span class="clear" @click="clearAllSearch">
                           <i class="icon-clear"></i>
                       </span>
                   </h1>
-                  <search-list :searches="searchHistory">
-
+                  <search-list @select="addQuery" @delete="deleteOne" :searches="searchHistory">
                   </search-list>
               </div>
           </div>
@@ -65,6 +64,12 @@ export default {
         addQuery(query) {
             this.$refs.searchBox.setQuery(query)
         },
+        deleteOne(item) {
+            this.deleteSearchHistory(item)
+        },
+        clearAllSearch() {
+            this.clearSearchHistory()
+        },
         // 搜索框变化时候触发的方法
         onQueryChange(query) {
             this.query = query
@@ -86,7 +91,9 @@ export default {
             this.saveSearchHistory(this.query)
         },
         ...mapActions([
-            'saveSearchHistory'
+            'saveSearchHistory',
+            'deleteSearchHistory',
+            'clearSearchHistory'
         ])
     }
 }
