@@ -94,7 +94,7 @@
         </div>
     </transition>
     <!-- audio提供了ready、timeupdate 和erro事件 -->
-    <audio ref="audio" :src="currentSong.url" @canplay="ready" @error="error" @timeupdate="updateTime" @ended="end"></audio>
+    <audio ref="audio" :src="currentSong.url" @play="ready" @error="error" @timeupdate="updateTime" @ended="end"></audio>
 </div>
 </template>
 
@@ -270,6 +270,7 @@ export default {
             }
             if (this.playList.length === 1) {
                 this.loop()
+                return
             } else {
                 let index = this.currentIndex + 1
                 // 最后一首的时候，返回到第一首
@@ -291,6 +292,7 @@ export default {
             }
             if (this.playList.length === 1) {
                 this.loop()
+                return
             } else {
                 let index = this.currentIndex - 1
                 // 最后一首的时候，返回到第一首
@@ -360,6 +362,10 @@ export default {
         getLyric() {
             // 获取歌词
             this.currentSong.getLyric().then((lyric) => {
+                // 防止快速切换歌曲的时候，歌词的凌乱
+                if (this.currentSong.lyric !== lyric) {
+                    return
+                }
                 // 解析歌词
                 this.currentLyric = new Lyric(lyric, this.handleLyric)
                 if (this.playing) {
@@ -495,7 +501,8 @@ export default {
             }
             // 将回调延迟到下次 DOM 更新循环之后执行。在修改数据之后立即使用它，然后等待 DOM 更新
             // 如果不调用的话会出现dom错误
-            setTimeout(() => {
+            clearTimeout(this.timer)
+            this.timer = setTimeout(() => {
                 this.$refs.audio.play()
                 this.getLyric()
             }, 1000)
